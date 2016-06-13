@@ -1,5 +1,7 @@
-Role Name
-=========
+ansible.role.shorewall
+======================
+
+[![Build Status](https://travis-ci.org/cjsteel/ansible-role-shorewall.svg?branch=master)](https://travis-ci.org/cjsteel/ansible-role-shorewall)
 
 Ansible role for installing and configuring Shorewall
 
