@@ -1,0 +1,8 @@
+---
+# shorewall/tasks ubuntu.yml
+
+- name: "including Ubuntu 12.04 tasks"
+  include: ubuntu_12.04.yml
+  when: ansible_distribution_version == "12.04"
+
+

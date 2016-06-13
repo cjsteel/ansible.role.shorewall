@@ -1,0 +1,16 @@
+# temp files
+*~
+
+*.swp
+
+# private files
+.private
+.prv
+*.retry
+.vault
+ansible.log
+bridged_adapter
+facts/
+port_speed
+# directories
+

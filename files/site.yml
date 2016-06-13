@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: false
+  gather_facts: false
+
+- include: shorewall.yml
+#  when: "'shorewall' in {{ group_names }}"
+
+

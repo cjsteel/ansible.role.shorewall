@@ -1,0 +1,81 @@
+---
+
+# apt update cache
+
+- name: update apt cache
+  apt: update_cache=yes cache_valid_time=43200
+  tags: [ 'packages', 'shorewall' ]
+
+# apt dist-upgrade
+
+- name: update apt cache
+  apt: upgrade=dist
+  tags: [ 'packages' ]
+  tags: [ 'packages', 'shorewall' ]
+
+# tasks file for shorewall
+
+- name: install shorewall
+  apt: name=shorewall state=installed
+  tags: [ 'packages', 'shorewall' ]
+
+- name: enable ipv4 forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+  tags: [ 'packages', 'shorewall' ]
+
+# zones
+
+- name: ensure for zones file
+  template: src=zones.j2 dest='/etc/shorewall/zones'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# interfaces
+
+- name: ensure for interfaces file
+  template: src=interfaces.j2 dest='/etc/shorewall/interfaces'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# policy
+
+- name: ensure for policy file
+  template: src=policy.j2 dest='/etc/shorewall/policy'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# rules
+
+- name: ensure for rules file
+  template: src=rules.j2 dest='/etc/shorewall/rules'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# masq
+
+- name: ensure for masq file
+  template: src=masq.j2 dest='/etc/shorewall/masq'
+  when: shorewall_configure_masq is defined and shorewall_configure_masq == True
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# shorewall.conf
+
+- name: ensure for shorewall.conf file
+  template: src=shorewall.conf.j2 dest='/etc/shorewall/shorewall.conf'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# - name: shorewall configuration check
+# if not correctly configured roll it back
+
+- name: enable shorewall
+  service: name=shorewall state=started enabled=yes
+  tags: [ 'packages', 'shorewall' ]
+

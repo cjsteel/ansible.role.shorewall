@@ -1,0 +1,116 @@
+---
+# defaults file for shorewall
+
+shorewall_originals_root_path: '../ace_hosts_originals'
+
+shorewall_config_files:
+
+  zones:
+    src: 'etc/shorewall/zones'
+    dest: '/etc/shorewall/zones'
+    owner='root'
+    group='root'
+    mode='644'
+
+  interfaces:
+    src: 'etc/shorewall/interfaces'
+    dest: '/etc/shorewall/interfaces'
+    owner='root'
+    group='root'
+    mode='644'
+
+  policy:
+    src: 'etc/shorewall/policy'
+    dest: '/etc/shorewall/policy'
+    owner='root'
+    group='root'
+    mode='644'
+
+  rules:
+    src: 'etc/shorewall/rules'
+    dest: '/etc/shorewall/rules'
+    owner='root'
+    group='root'
+    mode='644'
+
+  shorewall.conf:
+    src: 'etc/shorewall/shorewall.conf'
+    dest: '/etc/shorewall/shorewall.conf'
+    owner='root'
+    group='root'
+    mode='644'
+
+  masq:
+    src: 'etc/shorewall/masq'
+    dest: '/etc/shorewall/masq'
+    owner='root'
+    group='root'
+    mode='644'
+
+zones:
+
+  - name: "fw"
+    type: "firewall"
+
+  - name: "net"
+    type: "ipv4"
+
+  - name: "lan"
+    type: "ipv4"
+
+  - name: "vpn"
+    type: "ipv4"
+
+interfaces: 
+
+  - int: "eth0"
+    zone: "net"
+  
+  - int: "eth1"
+    zone: "lan"
+  
+  - int: "tun0"
+    zone: "vpn"
+
+policies:
+
+  - src: "$FW"
+    dst: "net"
+    policy: "ACCEPT"
+
+  - src: "net"
+    dst: "$FW"
+    policy: "DROP"
+    log_level: "info"
+
+#  - src: "net"
+#    dst: "all"
+#    policy: "DROP"
+#    log_level: "info"
+
+  - src: "lan"
+    dst: "all"
+    policy: "ACCEPT"
+
+  - src: "vpn"
+    dst: "all"
+    policy: "ACCEPT"
+
+rules:
+
+- rules:
+
+  - action: "ACCEPT"
+    src: "0.0.0.0/0"
+    dest: "$FW"    
+    proto: "tcp"
+    port: 22
+    comment: "Public SSH"
+
+  - action: "ACCEPT"
+    src: "0.0.0.0/0"
+    dest: "$FW"
+    proto: "udp"
+    port: 1194
+    comment: "Public OpenVPN"
+
