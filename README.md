@@ -9,20 +9,12 @@ Role Variables
 Required default variable values are located in:
 
     role/shorewall/defaults/main.yml
-
-Additional examples are here:
-
-    role/shorewall/files/shorewall*
     
-The values in `role/shorewall/defaults/main.yml` can be overridden in the following places:
+The values in `role/shorewall/defaults/main.yml` can be easily overridden in the following files:
 
-* project/host_vars/hostname/shorewall.yml  see files/shorewall.yml example
-* project/group_vars/all/shorewall.yml      see files/shorewall.yml example
+* project/host_vars/hostname/shorewall/shorewall.yml
+* project/group_vars/all/shorewall.yml
 * project/group_vars/shorewall.yml
-
-Defining vars in vars/main.yml overides vars in all of the above locations.
-
-* `role/shorewall/vars/main.yml`
 
 Example Playbook
 ----------------
