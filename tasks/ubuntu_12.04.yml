@@ -1,56 +1,79 @@
 ---
 # file: shorewall/tasks/ubuntu_12.04.yml
 
+# Ensure for our directories on our (local) controller.
+
+- name: ensure for directories
+  become: false
+  local_action: file
+    path='{{ item.path }}'
+    state=directory
+  with_items:
+    - { path: "{{ shorewall_fetched_files_root }}" }
+    - { path: "{{ shorewall_fetched_files_history_root }}" }
+    - { path: "{{ shorewall_fetched_files_original_root }}" }
+    - { path: "{{ shorewall_fetched_files_previous_root }}" }
+
 # apt update cache
 
 - name: update apt cache
+  become: true
   apt: update_cache=yes cache_valid_time=43200
   tags: [ 'packages', 'shorewall' ]
 
 # ensure shorewall installed
 
 - name: install shorewall
+  become: true
   apt: name=shorewall state=installed
   tags: [ 'packages', 'shorewall' ]
 
-# ensure for controllers {{ shorewall_originals_root_path }}
+# Originals
+## Save original files if we have not already
 
-- name: 'Do we have our {{ shorewall_originals_root_path }} directory ?'
-  local_action: stat path="{{ shorewall_originals_root_path }}"
-  register: path_stat_output
+- name: 'Do we have an original file in {{ shorewall_fetched_files_original_root }}/{{ ansible_hostname }}? '
+  become: false
+  local_action: stat path={{ shorewall_fetched_files_original_root }}/{{ ansible_hostname }}/etc/shorewall/zones
+  register: stat_shorewall_originals
   tags: [ 'packages', 'shorewall', 'originals' ]
 
-- debug: var=path_stat_output.stat.exists
+- debug: var=stat_shorewall_originals.stat.exists
 
-# if not then create it
-
-- name: "if no {{ shorewall_originals_root_path }} create it"
-  local_action: file path="{{ shorewall_originals_root_path }}"
-                state=directory mode=0777
-  when: path_stat_output.stat.exists != true
-  tags: [ 'packages', 'shorewall', 'originals' ]
-
-# fetch original shorewall config files
-
-- name: 'Do we have our {{ shorewall_originals_root_path }}/etc/shorewall directory ?'
-  local_action: stat path={{ shorewall_originals_root_path }}/{{ ansible_hostname }}/etc/shorewall
-  register: shorewall_path_stat_output
-  tags: [ 'packages', 'shorewall', 'originals' ]
-
-- debug: var=shorewall_path_stat_output.stat.exists
-
-- name: "backup our shorewall config files for rollback/examination"
+- name: "backup our shorewall originals"
   fetch:
-    src='{{ ansible_distribution }}/{{ ansible_distribution_version }}/{{ item.value.dest }}'  
-    dest='{{ shorewall_originals_root_path }}'
+    src='{{ item.value.dest }}'  
+    dest='{{ shorewall_fetched_files_original_root }}'
     flat=no
   with_dict: "{{ shorewall_config_files }}"
-  when: shorewall_path_stat_output.stat.exists != true
+  when: stat_shorewall_originals.stat.exists != true
+  tags: [ 'packages', 'shorewall', 'backup' ]
+
+# Previous
+## Backup the current configuration and overwrite the last one.
+
+- name: "backup our current shorewall to previous"
+  fetch:
+    src='{{ item.value.dest }}'
+    dest='{{ shorewall_fetched_files_previous_root }}'
+    flat=no
+  with_dict: "{{ shorewall_config_files }}"
+  tags: [ 'packages', 'shorewall', 'backup' ]
+
+# History
+## Backup our current configuration to our history archive
+
+- name: "backup our current shorewall to our history archive"
+  fetch:
+    src='{{ item.value.dest }}'
+    dest='{{ shorewall_fetched_files_history_root }}'
+    flat=no
+  with_dict: "{{ shorewall_config_files }}"
   tags: [ 'packages', 'shorewall', 'backup' ]
 
 # template our shorewall files
 
 - name: "running our templates and generate our configuration files"
+  become: true
   template:
     backup=yes
     src='{{ ansible_distribution }}/{{ ansible_distribution_version }}/{{ item.value.src }}.j2'
@@ -66,6 +89,7 @@
 # Ensure shorewall service is started and enabled
 
 - name: enable shorewall
+  become: true
   service: name=shorewall state=started enabled=yes
   tags: [ 'packages', 'shorewall' ]
 

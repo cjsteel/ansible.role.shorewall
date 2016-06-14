@@ -2,4 +2,5 @@
 # handlers file for shorewall
 
 - name: restart shorewall
+  become: true
   service: name=shorewall state=restarted

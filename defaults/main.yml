@@ -1,51 +1,61 @@
 ---
 # defaults file for shorewall
 
-shorewall_originals_root_path: '../ace_hosts_originals'
+
+shorewall_date_time_stamp: '{{ ansible_date_time.date }}--{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}--{{ ansible_date_time.tz }}'
+shorewall_fixed_date_time_stamp: "{{ shorewall_date_time_stamp }}"
+
+shorewall_fetched_files_root: '../ace_fetched_files'
+
+shorewall_fetched_files_history_root: '{{ shorewall_fetched_files_root }}/history/{{ shorewall_fixed_date_time_stamp }}'
+shorewall_fetched_files_original_root: '{{ shorewall_fetched_files_root }}/original'
+shorewall_fetched_files_previous_root: '{{ shorewall_fetched_files_root }}/previous'
+
 
 shorewall_config_files:
 
   zones:
     src: 'etc/shorewall/zones'
     dest: '/etc/shorewall/zones'
-    owner='root'
-    group='root'
-    mode='644'
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
   interfaces:
     src: 'etc/shorewall/interfaces'
     dest: '/etc/shorewall/interfaces'
-    owner='root'
-    group='root'
-    mode='644'
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
   policy:
     src: 'etc/shorewall/policy'
     dest: '/etc/shorewall/policy'
-    owner='root'
-    group='root'
-    mode='644'
+    loglevel: ''
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
   rules:
     src: 'etc/shorewall/rules'
     dest: '/etc/shorewall/rules'
-    owner='root'
-    group='root'
-    mode='644'
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
   shorewall.conf:
     src: 'etc/shorewall/shorewall.conf'
     dest: '/etc/shorewall/shorewall.conf'
-    owner='root'
-    group='root'
-    mode='644'
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
   masq:
     src: 'etc/shorewall/masq'
     dest: '/etc/shorewall/masq'
-    owner='root'
-    group='root'
-    mode='644'
+    owner: 'root'
+    group: 'root'
+    mode: '644'
 
 zones:
 
@@ -65,18 +75,24 @@ interfaces:
 
   - int: "eth0"
     zone: "net"
+    broadcast: ""
   
   - int: "eth1"
     zone: "lan"
-  
+    broadcast: ""
+
   - int: "tun0"
     zone: "vpn"
+    broadcast: ""
+
+masq: []
 
 policies:
 
   - src: "$FW"
     dst: "net"
     policy: "ACCEPT"
+    log_level: ""
 
   - src: "net"
     dst: "$FW"
@@ -91,10 +107,12 @@ policies:
   - src: "lan"
     dst: "all"
     policy: "ACCEPT"
+    log_level: ""
 
   - src: "vpn"
     dst: "all"
     policy: "ACCEPT"
+    log_level: ""
 
 rules:
 

@@ -11,5 +11,7 @@
 ###############################################################################
 #ZONE   INTERFACE   BROADCAST   OPTIONS
 {% for i in interfaces %}
-{{ i.zone }}	{{ i.int }}	{{ i.broadcast }}	{% if i.options is defined %}{{ i.options }}{% else %}{% endif %}
+{{ i.zone }}    {{ i.int }}    {% if i.broadcast is defined %}{{ i.broadcast }}{% else %}{% endif %}    {% if i.options is defined %}{{ i.options }}{% else %}{% endif %}
+
 {% endfor %}
+
