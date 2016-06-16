@@ -131,4 +131,3 @@ rules:
     proto: "udp"
     port: 1194
     comment: "Public OpenVPN"
-

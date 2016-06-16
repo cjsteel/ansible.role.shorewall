@@ -1,0 +1,90 @@
+---
+# file: roles/shorewall/tasks/centos_6.5.yml
+
+- name: add shorewall rpm key
+  rpm_key:
+    state=present
+    key="{{ shorewall_gpg_key_url }}"
+
+- name: "download shorewall-core rpm package"
+  get_url:
+    url: "{{ shorewall_core_package_download_url }}"
+    dest: '{{ ansible_env.HOME }}/{{ shorewall_rpm_directory }}/'
+  when:
+    - "{{ shorewall_package_state | present }}"
+
+- name: "download shorewall rpm package"
+  get_url:
+    url: "{{ shorewall_package_download_url }}"
+    dest: '{{ ansible_env.HOME }}/{{ shorewall_rpm_directory }}/'
+  when:
+    - "{{ shorewall_package_state | present }}"
+
+- name: "CentOS 6.5: install shorewall-core"
+  yum:
+    pkg="{{ shorewall_core_package_download_url }}"
+    state=present
+
+- name: "CentOS 6.5: install shorewall"
+  yum: 
+    pkg="{{ shorewall_package_download_url }}"
+    state=present
+
+# could everything below go into an os neutral file?
+
+# zones
+
+- name: ensure for zones file
+  template: src=zones.j2 dest='/etc/shorewall/zones'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# interfaces
+
+- name: ensure for interfaces file
+  template: src=interfaces.j2 dest='/etc/shorewall/interfaces'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# policy
+
+- name: ensure for policy file
+  template: src=policy.j2 dest='/etc/shorewall/policy'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# rules
+
+- name: ensure for rules file
+  template: src=rules.j2 dest='/etc/shorewall/rules'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# masq
+
+- name: ensure for masq file
+  template: src=masq.j2 dest='/etc/shorewall/masq'
+  when: shorewall_configure_masq is defined and shorewall_configure_masq == True
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# shorewall.conf
+
+- name: ensure for shorewall.conf file
+  template: src=shorewall.conf.j2 dest='/etc/shorewall/shorewall.conf'
+  notify: 
+  - restart shorewall
+  tags: [ 'packages', 'shorewall' ]
+
+# - name: shorewall configuration check
+# if not correctly configured roll it back
+
+- name: enable shorewall
+  service: name=shorewall state=started enabled=yes
+  tags: [ 'packages', 'shorewall' ]
+
