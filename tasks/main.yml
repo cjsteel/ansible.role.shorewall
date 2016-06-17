@@ -1,7 +1,7 @@
 ---
 # tasks file for shorewall
 
-- name: Running ubuntu.yml
+- name: "run tasks/ubuntu.yml when ansible_distribution is Ubuntu"
   include: ubuntu.yml
   when: ansible_distribution == "Ubuntu"
 
@@ -13,7 +13,8 @@
 #  include: darwin.yml
 #  when: ansible_os_family == "Darwin"
 
-#- include: centos.yml
-#  when: ansible_distribution == 'CentOS'
+- name: "run tasks/centos.yml when ansible_distribution is CentOS"
+  include: centos.yml
+  when: ansible_distribution == 'CentOS'
 
 
