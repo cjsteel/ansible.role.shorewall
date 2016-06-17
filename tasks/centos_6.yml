@@ -1,34 +1,33 @@
 ---
 # file: roles/shorewall/tasks/centos_6.5.yml
 
-- name: add shorewall rpm key
+- name: ensure for directories
+  file:
+    path='{{ item.path }}'
+    state=directory
+    owner="{{ ansible_ssh_user }}"
+    group="{{ ansible_ssh_user }}"
+    mode=0755
+  with_items:
+    - { path: '{{ shorewall_rpm_directory }}' }
+
+- name: "add shorewall rpm key"
   rpm_key:
     state=present
     key="{{ shorewall_gpg_key_url }}"
 
-- name: "download shorewall-core rpm package"
-  get_url:
-    url: "{{ shorewall_core_package_download_url }}"
-    dest: '{{ ansible_env.HOME }}/{{ shorewall_rpm_directory }}/'
-  when:
-    - "{{ shorewall_package_state | present }}"
+- name: "download latest shorewall packages"
+  command: "wget -r --no-directories --no-parent --reject 'index.html*' http://www.invoca.ch/pub/packages/shorewall/RPMS/ils-6/noarch/"
+  args:
+    chdir: '{{ shorewall_rpm_directory }}/'
+    creates: '{{ shorewall_rpm_directory }}/shorewall*'
 
-- name: "download shorewall rpm package"
-  get_url:
-    url: "{{ shorewall_package_download_url }}"
-    dest: '{{ ansible_env.HOME }}/{{ shorewall_rpm_directory }}/'
-  when:
-    - "{{ shorewall_package_state | present }}"
 
-- name: "CentOS 6.5: install shorewall-core"
-  yum:
-    pkg="{{ shorewall_core_package_download_url }}"
-    state=present
+#- name: "CentOS 6.5: install shorewall rpms"
+#  yum:
+#    pkg="{{ shorewall_core_package_download_url }}"
+#    state=present
 
-- name: "CentOS 6.5: install shorewall"
-  yum: 
-    pkg="{{ shorewall_package_download_url }}"
-    state=present
 
 # could everything below go into an os neutral file?
 

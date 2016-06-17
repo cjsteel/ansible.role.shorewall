@@ -1,7 +1,10 @@
 ---
 # file: role/shorewall/tasks/centos.yml
 
-- name: "run tasks/centos_6.5.yml when ansible distribution version is 6.5"
-  include: centos_6.5.yml
-  when: ansible_distribution_version == "6.5"
+- debug:
+    var="{{ ansible_lsb.major_release }}"
+
+- name: "run tasks/centos_6yml when ansible_lsb.major_release is 6"
+  include: centos_6.yml
+  when: ansible_lsb.major_release == "6"
 
