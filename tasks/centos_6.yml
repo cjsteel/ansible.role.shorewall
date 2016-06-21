@@ -5,8 +5,6 @@
   file:
     path='{{ item.path }}'
     state=directory
-    owner="{{ ansible_ssh_user }}"
-    group="{{ ansible_ssh_user }}"
     mode=0755
   with_items:
     - { path: '{{ shorewall_rpm_directory }}' }
@@ -33,49 +31,27 @@
 
 # zones
 
-- name: ensure for zones file
-  template: src=zones.j2 dest='/etc/shorewall/zones'
-  notify: 
-  - restart shorewall
+- name: template our shorewall configuration  files
+  template:
+    backup=yes
+    src='{{ ansible_distribution }}/{{ ansible_lsb.major_release }}/{{ item.value.src }}.j2'
+    dest='{{ item.value.dest }}'
+    owner='{{ item.value.owner }}'
+    group='{{ item.value.group }}'
+    mode='{{ item.value.mode }}'
+  with_dict: "{{ shorewall_config_files }}"
+  notify:
+   - restart shorewall
   tags: [ 'packages', 'shorewall' ]
 
-# interfaces
-
-- name: ensure for interfaces file
-  template: src=interfaces.j2 dest='/etc/shorewall/interfaces'
-  notify: 
-  - restart shorewall
-  tags: [ 'packages', 'shorewall' ]
-
-# policy
-
-- name: ensure for policy file
-  template: src=policy.j2 dest='/etc/shorewall/policy'
-  notify: 
-  - restart shorewall
-  tags: [ 'packages', 'shorewall' ]
-
-# rules
-
-- name: ensure for rules file
-  template: src=rules.j2 dest='/etc/shorewall/rules'
-  notify: 
-  - restart shorewall
-  tags: [ 'packages', 'shorewall' ]
-
-# masq
-
-- name: ensure for masq file
-  template: src=masq.j2 dest='/etc/shorewall/masq'
+- name: "ensure masq file templatized when shorewall_configure_masq == true"
+  template:
+    src='{{ ansible_distribution }}/{{ ansible_lsb.major_release }}/masq.j2'
+    dest='/etc/shorewall/masq'
+    owner='{{ item.value.owner }}'
+    group='{{ item.value.group }}'
+    mode='{{ item.value.mode }}'
   when: shorewall_configure_masq is defined and shorewall_configure_masq == True
-  notify: 
-  - restart shorewall
-  tags: [ 'packages', 'shorewall' ]
-
-# shorewall.conf
-
-- name: ensure for shorewall.conf file
-  template: src=shorewall.conf.j2 dest='/etc/shorewall/shorewall.conf'
   notify: 
   - restart shorewall
   tags: [ 'packages', 'shorewall' ]

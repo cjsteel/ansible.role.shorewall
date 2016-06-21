@@ -1,7 +1,6 @@
 ---
 # defaults file for shorewall
 
-
 shorewall_date_time_stamp: '{{ ansible_date_time.date }}--{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}--{{ ansible_date_time.tz }}'
 shorewall_fixed_date_time_stamp: "{{ shorewall_date_time_stamp }}"
 
@@ -14,7 +13,7 @@ shorewall_fetched_files_previous_root: '{{ shorewall_fetched_files_root }}/previ
 ## Only used CentOS at this time
 
 
-shorewall_rpm_directory: '/home/{{ ansible_ssh_user }}/sys/rpms'
+shorewall_rpm_directory: '{{ ansible_user_dir }}/sys/rpms'
 
 #shorewall_package_extension: 'rpm'
 #shorewall_package_version: '5.0.8.2-1'
@@ -67,6 +66,8 @@ shorewall_config_files:
     owner: 'root'
     group: 'root'
     mode: '644'
+
+shorewall_masq_file:
 
   masq:
     src: 'etc/shorewall/masq'
