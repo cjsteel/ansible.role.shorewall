@@ -3,7 +3,7 @@ ansible.role.shorewall
 
 [![Build Status](https://travis-ci.org/cjsteel/ansible-role-shorewall.svg?branch=master)](https://travis-ci.org/cjsteel/ansible-role-shorewall)
 
-Ansible role for installing and configuring Shorewall
+Ansible role for installing and configuring Shorewall. Currently working for Ubuntu (12.04, 14.04) in process of adding CentOS (6) / shorwall 5 support.
 
 ### Quick Start
 
@@ -50,5 +50,3 @@ This setup allows for the easy addition of roles as well as a lot of control on 
     - hosts: shorewall
       roles:
          - { role: shorewall }
-
-
