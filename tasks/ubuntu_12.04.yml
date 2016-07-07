@@ -86,10 +86,36 @@
   - restart shorewall
   tags: [ 'packages', 'shorewall', 'configure' ]
 
+# Get check our Shorewall and our configuration
+
+- name: shorewall check
+  shell: shorewall check
+  register: shorewall_check
+  tags: [ 'packages', 'shorewall' ]
+
 # Ensure shorewall service is started and enabled
 
 - name: enable shorewall
   become: true
   service: name=shorewall state=started enabled=yes
+  when: shorewall_check.stdout.find('Shorewall configuration verified') != -1
   tags: [ 'packages', 'shorewall' ]
+
+#- debug: var=shorewall_check
+
+# Check shorewall status, did it start, is it running?
+
+- name: check shorewall status
+  shell: shorewall status
+  register: shorewall_status
+  tags: [ 'packages', 'shorewall', 'status' ]
+
+#- debug: var=shorewall_status
+
+# When shorewall is installed and the conworking we disable ufw
+
+- name: disable ufw is shorewall is running
+  shell: ufw disable
+  tags: [ 'packages', 'shorewall' ]
+  when: shorewall_status.stdout.find('Shorewall is running') != -1
 
