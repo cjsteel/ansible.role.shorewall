@@ -29,6 +29,7 @@
   tags: [ 'packages', 'shorewall' ]
 
 # Originals
+
 ## Save original files if we have not already
 
 - name: 'Do we have an original file in {{ shorewall_fetched_files_original_root }}/{{ ansible_hostname }}? '
@@ -48,7 +49,8 @@
   when: stat_shorewall_originals.stat.exists != true
   tags: [ 'packages', 'shorewall', 'backup' ]
 
-# Previous
+# Previous configuration
+
 ## Backup the current configuration and overwrite the last one.
 
 - name: "backup our current shorewall to previous"
@@ -59,7 +61,8 @@
   with_dict: "{{ shorewall_config_files }}"
   tags: [ 'packages', 'shorewall', 'backup' ]
 
-# History
+# History of configurations
+
 ## Backup our current configuration to our history archive
 
 - name: "backup our current shorewall to our history archive"
@@ -86,14 +89,20 @@
   - restart shorewall
   tags: [ 'packages', 'shorewall', 'configure' ]
 
-# Get check our Shorewall and our configuration
+# Get check our shorewall configuration files
 
-- name: shorewall check
+- name: run shorewall check
   shell: shorewall check
   register: shorewall_check
   tags: [ 'packages', 'shorewall' ]
 
-# Ensure shorewall service is started and enabled
+#- debug: var=shorewall_check
+
+- name: fail if shorewall check fails
+  fail: msg="1st test, shorewall check failed on {{ inventory_hostname }}!!!"
+  when: shorewall_check.stdout.find('Shorewall configuration verified') == -1
+
+# Start shorewall service.
 
 - name: enable shorewall
   become: true
@@ -101,7 +110,53 @@
   when: shorewall_check.stdout.find('Shorewall configuration verified') != -1
   tags: [ 'packages', 'shorewall' ]
 
-#- debug: var=shorewall_check
+# Check shorewall status, did it start, is it running?
+
+- name: check shorewall status
+  shell: shorewall status
+  register: shorewall_status
+  tags: [ 'packages', 'shorewall', 'status' ]
+
+#- debug: var=shorewall_status
+
+- name: 1st test, fail if shorewall is not running
+  fail: msg="1st test, shorewall failed to start on {{ inventory_hostname }}!!!"
+  when: shorewall_status.stdout.find('Shorewall is running') == -1
+
+# Configure shorewall to start on system boot as we where able to connect to disable ufw...
+
+- name: Set `startup=1` in `/etc/default/shorewall` so shorewall is started on boot.
+  lineinfile:
+    dest: '/etc/default/shorewall'
+    regexp: '^startup=0'
+    line: 'startup=1'
+    state: present
+  when: shorewall_status.stdout.find('Shorewall is running') != -1
+
+# Start Reboot sequence
+#
+# https://github.com/ansible/ansible/issues/10616
+
+#- name: Set SELINUX to Permissive
+#  selinux: state=permissive policy=targeted
+
+- name: "restart the system"
+  command: shutdown -r now "Ansible triggered reboot to test firewall start on boot"
+  async: 0
+  poll: 0
+  ignore_errors: true
+  when: ansible_connection != 'local'
+
+# wait for target systems reboot and port 22 to become available before continuing
+
+- name: wait for the server to restart
+  local_action: wait_for host={{ inventory_hostname }}
+                port=22
+                search_regex=OpenSSH
+                delay=10
+                timeout=300
+                state=started
+  sudo: false
 
 # Check shorewall status, did it start, is it running?
 
@@ -115,6 +170,17 @@
 # When shorewall is installed and the conworking we disable ufw
 
 - name: disable ufw is shorewall is running
+  shell: ufw disable
+  tags: [ 'packages', 'shorewall' ]
+  when: shorewall_status.stdout.find('Shorewall is running') != -1
+
+- name: Fail if shorewall is not restarted
+  fail: msg="Shorewall failed to start on {{ inventory_hostname }}!!!"
+  when: shorewall_status.stdout.find('Shorewall is running') == -1
+
+# Now that shorewall is installed, configured and running we will disable ufw
+
+- name: SUCCESS - Shorewall installed, configured and running, disabling ufw
   shell: ufw disable
   tags: [ 'packages', 'shorewall' ]
   when: shorewall_status.stdout.find('Shorewall is running') != -1

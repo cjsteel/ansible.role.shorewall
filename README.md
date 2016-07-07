@@ -5,6 +5,10 @@ ansible.role.shorewall
 
 Ansible role for installing and configuring Shorewall. Currently working for Ubuntu (12.04, 14.04) in process of adding CentOS (6) / shorwall 5 support.
 
+### Under construction
+
+Currently in process of adding support for CentOS
+
 ### Quick Start
 
 #### ssh agent
