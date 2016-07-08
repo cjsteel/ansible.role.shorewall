@@ -1,6 +1,11 @@
 ---
 # file: shorewall/tasks/ubuntu_12.04.yml
 
+- name: we set a handler to reboot system if conncetion is severed.
+  command: /bin/true
+  notify: reboot system
+  when: ansible_connection != 'local'
+
 # Ensure for our directories on our (local) controller.
 
 - name: ensure for directories
@@ -92,40 +97,70 @@
 # Get check our shorewall configuration files
 
 - name: run shorewall check
+  become: true
   shell: shorewall check
   register: shorewall_check
-  tags: [ 'packages', 'shorewall' ]
+  tags: [ 'packages', 'shorewall', 'shorewall_check' ]
 
-#- debug: var=shorewall_check
+- debug: var=shorewall_check
+  tags: [ 'debug', 'shorewall_check' ]
 
 - name: fail if shorewall check fails
   fail: msg="1st test, shorewall check failed on {{ inventory_hostname }}!!!"
   when: shorewall_check.stdout.find('Shorewall configuration verified') == -1
+  tags: [ 'debug', 'shorewall_check' ]
+
+# Check shorewall status
+
+- name: get shorewall status
+  become: true
+  shell: shorewall status
+  ignore_errors: true
+  register: shorewall_status
+  tags: [ 'packages', 'shorewall', 'shorewall_status' ]
+
+# Reload shorewall
+
+- name: Restart Shorewall service
+  become: true
+  service:
+    name=shorewall
+    state=restarted
+  when: shorewall_check.stdout.find('Shorewall configuration verified') != -1
+  tags: [ 'packages', 'shorewall' ]
 
 # Start shorewall service.
 
-- name: enable shorewall
+- name: check shorewall status
   become: true
-  service: name=shorewall state=started enabled=yes
-  when: shorewall_check.stdout.find('Shorewall configuration verified') != -1
+  shell: shorewall start
+  register: shorewall_start_output
+  when: shorewall_check.stdout.find('Shorewall configuration verified') != -1 and
+        shorewall_status.stdout.find('Shorewall is started') == -1
   tags: [ 'packages', 'shorewall' ]
+
+- debug: var=shorewall_start_output
 
 # Check shorewall status, did it start, is it running?
 
 - name: check shorewall status
+  become: true
   shell: shorewall status
   register: shorewall_status
   tags: [ 'packages', 'shorewall', 'status' ]
 
-#- debug: var=shorewall_status
+- debug: var=shorewall_status
+  tags: [ 'packages', 'shorewall', 'status' ]
 
 - name: 1st test, fail if shorewall is not running
   fail: msg="1st test, shorewall failed to start on {{ inventory_hostname }}!!!"
   when: shorewall_status.stdout.find('Shorewall is running') == -1
+  tags: [ 'packages', 'shorewall', 'status' ]
 
-# Configure shorewall to start on system boot as we where able to connect to disable ufw...
+# Configure shorewall to start on system boot as we are still able to connect.
 
 - name: Set `startup=1` in `/etc/default/shorewall` so shorewall is started on boot.
+  become: true
   lineinfile:
     dest: '/etc/default/shorewall'
     regexp: '^startup=0'
@@ -139,8 +174,10 @@
 
 #- name: Set SELINUX to Permissive
 #  selinux: state=permissive policy=targeted
+#  when: ansible_connection != 'local'
 
 - name: "restart the system"
+  become: true
   command: shutdown -r now "Ansible triggered reboot to test firewall start on boot"
   async: 0
   poll: 0
@@ -157,19 +194,22 @@
                 timeout=300
                 state=started
   sudo: false
+  when: ansible_connection != 'local'
 
 # Check shorewall status, did it start, is it running?
 
 - name: check shorewall status
+  become: true
   shell: shorewall status
   register: shorewall_status
   tags: [ 'packages', 'shorewall', 'status' ]
 
-#- debug: var=shorewall_status
+- debug: var=shorewall_status
 
 # When shorewall is installed and the conworking we disable ufw
 
 - name: disable ufw is shorewall is running
+  become: true
   shell: ufw disable
   tags: [ 'packages', 'shorewall' ]
   when: shorewall_status.stdout.find('Shorewall is running') != -1
@@ -181,7 +221,7 @@
 # Now that shorewall is installed, configured and running we will disable ufw
 
 - name: SUCCESS - Shorewall installed, configured and running, disabling ufw
+  become: true
   shell: ufw disable
   tags: [ 'packages', 'shorewall' ]
   when: shorewall_status.stdout.find('Shorewall is running') != -1
-

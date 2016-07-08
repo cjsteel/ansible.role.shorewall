@@ -6,6 +6,7 @@
 # private files
 .private
 .prv
+*.save
 *.retry
 .vault
 ansible.log
