@@ -6,11 +6,8 @@
 # private files
 .private
 .prv
+*.save
 *.retry
 .vault
-ansible.log
-bridged_adapter
-facts/
-port_speed
 # directories
 
