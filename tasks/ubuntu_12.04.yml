@@ -106,7 +106,7 @@
 
 - name: enable shorewall
   become: true
-  service: name=shorewall state=started enabled=yes
+  shell: shorewall start
   when: shorewall_check.stdout.find('Shorewall configuration verified') != -1
   tags: [ 'packages', 'shorewall' ]
 
