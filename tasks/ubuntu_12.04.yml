@@ -5,10 +5,12 @@
   debug:
     var="{{ ansible_hostname }}"
 
-- name: we set a handler to reboot the system if our connection is severed.
-  command: /bin/true
-  notify: reboot system
-  when: ansible_connection != 'local'
+# Not working on first run
+#
+#- name: we set a handler to reboot the system if our connection is severed.
+#  command: /bin/true
+#  notify: reboot system
+#  when: ansible_connection != 'local'
 
 # Ensure for our directories on our (local) controller.
 
@@ -145,7 +147,7 @@
         shorewall_status.stdout.find('Shorewall is started') == -1
   tags: [ 'packages', 'shorewall' ]
 
-- debug: var=shorewall_start_output
+#- debug: var=shorewall_start_output
 
 # Check shorewall status, did shorewall restart or start, is it running now?
 
@@ -155,8 +157,7 @@
   register: shorewall_status
   tags: [ 'packages', 'shorewall', 'status' ]
 
-- debug: var=shorewall_status
-  tags: [ 'packages', 'shorewall', 'status' ]
+#- debug: var=shorewall_status
 
 # Fail if shorewall is not running
 
@@ -203,7 +204,7 @@
                 state=started
   sudo: false
 
-# Check shorewall status, did it start, is it running?
+# Did shorewall start running after a reboot?
 
 - name: check shorewall status
   become: true
@@ -211,7 +212,7 @@
   register: shorewall_status
   tags: [ 'packages', 'shorewall', 'status' ]
 
-- debug: var=shorewall_status
+# - debug: var=shorewall_status
 
 # Fail if shorewall did not restart on boot.
 

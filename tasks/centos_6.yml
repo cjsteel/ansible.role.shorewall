@@ -48,6 +48,8 @@
   with_dict: "{{ shorewall_config_files }}"
   notify:
    - restart shorewall
+  when: ansible_distribution == 'CentOS'
+
   tags: [ 'packages', 'shorewall' ]
 
 - name: "ensure masq file templatized when shorewall_configure_masq == true"
