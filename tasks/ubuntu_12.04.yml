@@ -1,6 +1,10 @@
 ---
 # file: shorewall/tasks/ubuntu_12.04.yml
 
+- name: ###### STARTING UBUNTU_12.04.YML #######
+  debug:
+    var="{{ ansible_hostname }}"
+
 - name: we set a handler to reboot the system if our connection is severed.
   command: /bin/true
   notify: reboot system
@@ -182,7 +186,7 @@
 
 - name: "restart the system"
   become: true
-  command: shutdown -r now "Ansible triggered reboot to test firewall start on boot"
+  command: shutdown -r now "Ansible triggered reboot to test firewall start on system boot"
   async: 0
   poll: 0
   ignore_errors: true
@@ -198,7 +202,6 @@
                 timeout=300
                 state=started
   sudo: false
-  when: ansible_connection != 'local'
 
 # Check shorewall status, did it start, is it running?
 
@@ -209,14 +212,6 @@
   tags: [ 'packages', 'shorewall', 'status' ]
 
 - debug: var=shorewall_status
-
-# When shorewall is installed and the conworking we disable ufw
-
-- name: disable ufw if shorewall is running
-  become: true
-  shell: ufw disable
-  tags: [ 'packages', 'shorewall' ]
-  when: shorewall_status.stdout.find('Shorewall is running') != -1
 
 # Fail if shorewall did not restart on boot.
 

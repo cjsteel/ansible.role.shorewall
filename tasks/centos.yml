@@ -1,7 +1,8 @@
 ---
 # file: role/shorewall/tasks/centos.yml
 
-- debug:
+- name: ###### STARTING CENTOS.YML #######
+  debug:
     var="{{ ansible_lsb.major_release }}"
 
 - name: "run tasks/centos_6yml when ansible_lsb.major_release is 6"

@@ -1,6 +1,12 @@
 ---
 # file: roles/shorewall/tasks/centos_6.5.yml
 
+- name: ###### STARTING CENTOS_6.5.YML #######
+  debug:
+    var="{{ ansible_lsb.major_release }}"
+
+- debug: var=ansible_hostname 
+
 - name: ensure for directories
   file:
     path='{{ item.path }}'
