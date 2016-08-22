@@ -3,9 +3,14 @@
 
 - name: ###### STARTING CENTOS.YML #######
   debug:
-    var="{{ ansible_lsb.major_release }}"
+    var="{{ ansible_distribution_major_version }}"
 
-- name: "run tasks/centos_6yml when ansible_lsb.major_release is 6"
+- name: "run tasks/centos_6.yml when ansible_distribution_major_version is 6"
   include: centos_6.yml
-  when: ansible_lsb.major_release == "6"
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "6"
+
+- name: "run tasks/centos_7.yml when ansible_distribution_major_version is 7"
+  include: centos_7.yml
+  when:  ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
 

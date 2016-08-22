@@ -4,14 +4,36 @@
 shorewall_date_time_stamp: '{{ ansible_date_time.date }}--{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}--{{ ansible_date_time.tz }}'
 shorewall_fixed_date_time_stamp: "{{ shorewall_date_time_stamp }}"
 
+shorewall_ensure_dirs_on_local:
+
+  local_dirs:
+
+    state       : "directory"
+    path        : "../ace_fetched_files"
+    owner       : "{{ ansible_user_id }}"
+    group       : "{{ ansible_user_id }}"
+    mode        : "0644"
+    recursive   : True
+
+shorewall_ensure_dirs_on_remote:
+
+  remote_dirs:
+
+    state       : "directory"
+    path        : "sys/rpms"
+    owner       : "{{ ansible_user_id }}"
+    group       : "{{ ansible_user_id }}"
+    mode        : "0644"
+    recursive   : True
+
+
 shorewall_fetched_files_root: '../ace_fetched_files'
 
 shorewall_fetched_files_history_root: '{{ shorewall_fetched_files_root }}/history/{{ shorewall_fixed_date_time_stamp }}'
 shorewall_fetched_files_original_root: '{{ shorewall_fetched_files_root }}/original'
 shorewall_fetched_files_previous_root: '{{ shorewall_fetched_files_root }}/previous'
 
-## Only used CentOS at this time
-
+## Only used by CentOS at this time
 
 shorewall_rpm_directory: '{{ ansible_user_dir }}/sys/rpms'
 

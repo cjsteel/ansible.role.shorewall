@@ -1,5 +1,5 @@
 ---
-# file: roles/shorewall/tasks/centos_6.yml
+# file: roles/shorewall/tasks/centos_7.yml
 
 - name: "debuging..." 
   debug:
@@ -7,44 +7,33 @@
 
 - debug: var=ansible_hostname 
 
-#- name: ensure for directories
-#  file:
-#    path='{{ item.path }}'
-#    state=directory
-#    mode=0755
-#  with_items:
-#    - { path: '{{ shorewall_rpm_directory }}' }
+- name: ensure for directories
+  file:
+    path='{{ item.path }}'
+    state=directory
+    mode=0755
+  with_items:
+    - { path: '{{ shorewall_rpm_directory }}' }
 
 - name: "add shorewall rpm key"
   rpm_key:
     state=present
     key="{{ shorewall_gpg_key_url }}"
 
-- name: "download shorewall core rpm  shorewall-core-5.0.11.0-1.el6.noarch.rpm"
-  get_url:
-    url=http://www.invoca.ch/pub/packages/shorewall/RPMS/ils-6/noarch/shorewall-core-5.0.11.0-1.el6.noarch.rpm
-    dest=/home/ansible/sys/rpms/
-    mode=0440
+- name: "download latest shorewall packages"
+  command: "wget -r --no-directories --no-parent --reject 'index.html*' http://www.invoca.ch/pub/packages/shorewall/RPMS/ils-6/noarch/"
+  args:
+    chdir: '{{ shorewall_rpm_directory }}/'
+    creates: '{{ shorewall_rpm_directory }}/shorewall*'
 
-- name: "download shorewall rpm  shorewall-5.0.11.0-1.el6.noarch.rpm"
-  get_url:
-    url=http://www.invoca.ch/pub/packages/shorewall/RPMS/ils-6/noarch/shorewall-5.0.11.0-1.el6.noarch.rpm
-    dest=/home/ansible/sys/rpms/        
-    mode=0440
 
-- name: "Install shorewall-core-5.0.11.0-1.el6.noarch.rpm"
-  yum:
-     name: /home/ansible/sys/rpms/shorewall-core-5.0.11.0-1.el6.noarch.rpm
-     state: present
+#- name: "CentOS 6.5: install shorewall rpms"
+#  yum:
+#    pkg="{{ shorewall_core_package_download_url }}"
+#    state=present
 
-- name: "Install shorewall-core-5.0.11.0-1.el6.noarch.rpm"
-  yum:
-     name: /home/ansible/sys/rpms/shorewall-5.0.11.0-1.el6.noarch.rpm
-     state: present
 
-# Configure shorewall
-#
-#could everything below go into an os neutral file?
+# could everything below go into an os neutral file?
 
 # zones
 
